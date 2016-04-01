@@ -1,259 +1,261 @@
--- module Prelude
+/* global exports */
+"use strict";
 
-local Prelude = {}
+// module Prelude
 
---- Functor --------------------------------------------------------------------
+//- Functor --------------------------------------------------------------------
 
-Prelude.arrayMap = function (f)
-  return function (arr)
-    local result = {}
-    for i = 1, #arr do
+exports.arrayMap = function (f) {
+  return function (arr) {
+    var l = arr.length;
+    var result = new Array(l);
+    for (var i = 0; i < l; i++) {
       result[i] = f(arr[i]);
-    end
+    }
     return result;
-	end
-end
+  };
+};
 
---- Bind -----------------------------------------------------------------------
+//- Bind -----------------------------------------------------------------------
 
-Prelude.arrayBind = function (arr)
-  return function (f)
-    local result = {}
-    for i = 1, #arr do
-	  local inner = f(arr[i])
-      for j = 1, #inner do
-		result[#result+1] = inner[j]
-	  end
-	end
+exports.arrayBind = function (arr) {
+  return function (f) {
+    var result = [];
+    for (var i = 0, l = arr.length; i < l; i++) {
+      Array.prototype.push.apply(result, f(arr[i]));
+    }
     return result;
-  end
-end
+  };
+};
 
---- Monoid ---------------------------------------------------------------------
+//- Monoid ---------------------------------------------------------------------
 
-Prelude.concatString = function (s1)
-  return function (s2)
-    return s1 .. s2
-  end
-end
+exports.concatString = function (s1) {
+  return function (s2) {
+    return s1 + s2;
+  };
+};
 
-Prelude.concatArray = function (xs)
-  return function (ys)
-	local result = copyTable(xs)
-	for i=1, #ys do
-		result[#result+1] = ys[i]
-	end
-    return result
-  end
-end
+exports.concatArray = function (xs) {
+  return function (ys) {
+    return xs.concat(ys);
+  };
+};
 
---- Semiring -------------------------------------------------------------------
+//- Semiring -------------------------------------------------------------------
 
-Prelude.intAdd = function (x)
-  return function (y)
-    return math.floor(x + y)
-  end
-end
+exports.intAdd = function (x) {
+  return function (y) {
+    /* jshint bitwise: false */
+    return x + y | 0;
+  };
+};
 
-Prelude.intMul = function (x)
-  return function (y)
-    return math.floor(x * y)
-  end
-end
+exports.intMul = function (x) {
+  return function (y) {
+    /* jshint bitwise: false */
+    return x * y | 0;
+  };
+};
 
-Prelude.numAdd = function (n1)
-  return function (n2)
-    return n1 + n2
-  end
-end
+exports.numAdd = function (n1) {
+  return function (n2) {
+    return n1 + n2;
+  };
+};
 
-Prelude.numMul = function (n1)
-  return function (n2)
-    return n1 * n2
-  end
-end
+exports.numMul = function (n1) {
+  return function (n2) {
+    return n1 * n2;
+  };
+};
 
---- ModuloSemiring -------------------------------------------------------------
+//- ModuloSemiring -------------------------------------------------------------
 
-Prelude.intDiv = function (x)
-  return function (y)
-    return math.floor(x / y)
-  end
-end
+exports.intDiv = function (x) {
+  return function (y) {
+    /* jshint bitwise: false */
+    return x / y | 0;
+  };
+};
 
-Prelude.intMod = function (x)
-  return function (y)
-    return x % y
-  end
-end
+exports.intMod = function (x) {
+  return function (y) {
+    return x % y;
+  };
+};
 
-Prelude.numDiv = function (n1)
-  return function (n2)
-    return n1 / n2
-  end
-end
+exports.numDiv = function (n1) {
+  return function (n2) {
+    return n1 / n2;
+  };
+};
 
---- Ring -----------------------------------------------------------------------
+//- Ring -----------------------------------------------------------------------
 
-Prelude.intSub = function (x)
-  return function (y)
-    return math.floor(x - y)
-  end
-end
+exports.intSub = function (x) {
+  return function (y) {
+    /* jshint bitwise: false */
+    return x - y | 0;
+  };
+};
 
-Prelude.numSub = function (n1)
-  return function (n2)
+exports.numSub = function (n1) {
+  return function (n2) {
     return n1 - n2;
-  end
-end
+  };
+};
 
---- Eq -------------------------------------------------------------------------
+//- Eq -------------------------------------------------------------------------
 
-Prelude.refEq = function (r1)
-  return function (r2)
-    return r1 == r2
-  end
-end
+exports.refEq = function (r1) {
+  return function (r2) {
+    return r1 === r2;
+  };
+};
 
-Prelude.refIneq = function (r1)
-  return function (r2)
-    return r1 ~= r2
-  end
-end
+exports.refIneq = function (r1) {
+  return function (r2) {
+    return r1 !== r2;
+  };
+};
 
-Prelude.eqArrayImpl = function (f)
-  return function (xs)
-    return function (ys)
-      if xs.length ~= ys.length then return false end
-      for i = 1, #xs do
-        if not f(xs[i])(ys[i]) then return false end
-      end
-      return true
-    end
-  end
-end
+exports.eqArrayImpl = function (f) {
+  return function (xs) {
+    return function (ys) {
+      if (xs.length !== ys.length) return false;
+      for (var i = 0; i < xs.length; i++) {
+        if (!f(xs[i])(ys[i])) return false;
+      }
+      return true;
+    };
+  };
+};
 
-Prelude.ordArrayImpl = function (f)
-  return function (xs)
-    return function (ys)
-      local i = 1
-      while i < #xs and i < #ys do
-        local x = xs[i]
-        local y = ys[i]
-        local o = f(x)(y)
-        if o ~= 0 then
+exports.ordArrayImpl = function (f) {
+  return function (xs) {
+    return function (ys) {
+      var i = 0;
+      var xlen = xs.length;
+      var ylen = ys.length;
+      while (i < xlen && i < ylen) {
+        var x = xs[i];
+        var y = ys[i];
+        var o = f(x)(y);
+        if (o !== 0) {
           return o;
-        end
-        i = i + 1
-      end
-      if (#xs == #ys) then
-        return 0
-      elseif #xs > #ys then
-        return -1
-      else
-        return 1
-      end
-    end
-  end
-end
+        }
+        i++;
+      }
+      if (xlen === ylen) {
+        return 0;
+      } else if (xlen > ylen) {
+        return -1;
+      } else {
+        return 1;
+      }
+    };
+  };
+};
 
---- Ord ------------------------------------------------------------------------
+//- Ord ------------------------------------------------------------------------
 
-Prelude.unsafeCompareImpl = function (lt)
-  return function (eq)
-    return function (gt)
-      return function (x)
-        return function (y)
-          return x < y and lt or (x > y and gt or eq)
-        end
-      end
-    end
-  end
-end
+exports.unsafeCompareImpl = function (lt) {
+  return function (eq) {
+    return function (gt) {
+      return function (x) {
+        return function (y) {
+          return x < y ? lt : x > y ? gt : eq;
+        };
+      };
+    };
+  };
+};
 
---- Bounded --------------------------------------------------------------------
+//- Bounded --------------------------------------------------------------------
 
-Prelude.topInt = 2147483647
-Prelude.bottomInt = -2147483648
+exports.topInt = 2147483647;
+exports.bottomInt = -2147483648;
 
-Prelude.topChar = string.char(255)
-Prelude.bottomChar = string.char(0)
+exports.topChar = String.fromCharCode(65535);
+exports.bottomChar = String.fromCharCode(0);
 
---- BooleanAlgebra -------------------------------------------------------------
+//- BooleanAlgebra -------------------------------------------------------------
 
-Prelude.boolOr = function (b1)
-  return function (b2)
-    return b1 or b2
-  end
-end
+exports.boolOr = function (b1) {
+  return function (b2) {
+    return b1 || b2;
+  };
+};
 
-Prelude.boolAnd = function (b1)
-  return function (b2)
-    return b1 and b2
-  end
-end
+exports.boolAnd = function (b1) {
+  return function (b2) {
+    return b1 && b2;
+  };
+};
 
-Prelude.boolNot = function (b)
-  return not b
-end
+exports.boolNot = function (b) {
+  return !b;
+};
 
---- Show -----------------------------------------------------------------------
+//- Show -----------------------------------------------------------------------
 
-Prelude.showIntImpl = function (n)
-  return tostring(n)
-end
+exports.showIntImpl = function (n) {
+  return n.toString();
+};
 
-Prelude.showNumberImpl = function (n)
-  return n == math.floor(n) and n .. ".0" or tostring(n)
-end
+exports.showNumberImpl = function (n) {
+  /* jshint bitwise: false */
+  return n === (n | 0) ? n + ".0" : n.toString();
+};
 
-Prelude.showCharImpl = function (c)
-  local code = string.byte(c)
-  if code < 0x20 or code == 0x7F then
-    if c == "\a" then return "'\\a'" end
-    if c == "\b" then return "'\\b'" end
-    if c == "\f" then return "'\\f'" end
-    if c == "\n" then return "'\\n'" end
-    if c == "\r" then return "'\\r'" end
-    if c == "\t" then return "'\\t'" end
-    if c == "\v" then return "'\\v'" end
-    return "'\\" + tostring(code) + "'";
-  end
-  return c == "'" or c == "\\" and "'\\" + c + "'" or "'" + c + "'"
-end
+exports.showCharImpl = function (c) {
+  var code = c.charCodeAt(0);
+  if (code < 0x20 || code === 0x7F) {
+    switch (c) {
+      case "\a": return "'\\a'";
+      case "\b": return "'\\b'";
+      case "\f": return "'\\f'";
+      case "\n": return "'\\n'";
+      case "\r": return "'\\r'";
+      case "\t": return "'\\t'";
+      case "\v": return "'\\v'";
+    }
+    return "'\\" + code.toString(10) + "'";
+  }
+  return c === "'" || c === "\\" ? "'\\" + c + "'" : "'" + c + "'";
+};
 
-Prelude.showStringImpl = function (s)
-  return "\"" .. string.gsub(s, "[\0-\x1F\x7F]", function(c)
-      if c == "\"" or c == "\\" then
-        return "\\" + c;
-      end
-      if c == "\a" then return "\\a" end
-      if c == "\b" then return "\\b" end
-      if c == "\f" then return "\\f" end
-      if c == "\n" then return "\\n" end
-      if c == "\r" then return "\\r" end
-      if c == "\t" then return "\\t" end
-      if c == "\v" then return "\\v" end
-    return "\\" .. tostring(string.byte(c))
-  end) .. "\""
-end
+exports.showStringImpl = function (s) {
+  var l = s.length;
+  return "\"" + s.replace(
+    /[\0-\x1F\x7F"\\]/g,
+    function (c, i) { // jshint ignore:line
+      switch (c) {
+        case "\"":
+        case "\\":
+          return "\\" + c;
+        case "\a": return "\\a";
+        case "\b": return "\\b";
+        case "\f": return "\\f";
+        case "\n": return "\\n";
+        case "\r": return "\\r";
+        case "\t": return "\\t";
+        case "\v": return "\\v";
+      }
+      var k = i + 1;
+      var empty = k < l && s[k] >= "0" && s[k] <= "9" ? "\\&" : "";
+      return "\\" + c.charCodeAt(0).toString(10) + empty;
+    }
+  ) + "\"";
+};
 
-Prelude.showArrayImpl = function (f)
-  return function (xs)
-    local ss = {}
-    for i = 1, #xs do
-      ss[i] = f(xs[i])
-    end
-    return "[" .. table.concat(ss, ",") .. "]"
-  end
-end
-
-local function copyTable(tbl)
-  local result = {}
-  for i=1, #tbl do
-    result[i] = tbl[i]
-  end
-  return result
-end
-
-return Prelude
+exports.showArrayImpl = function (f) {
+  return function (xs) {
+    var ss = [];
+    for (var i = 0, l = xs.length; i < l; i++) {
+      ss[i] = f(xs[i]);
+    }
+    return "[" + ss.join(",") + "]";
+  };
+};
