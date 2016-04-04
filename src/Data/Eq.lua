@@ -10,7 +10,7 @@ end
 
 exports.refIneq = function (r1)
   return function (r2)
-    return r1 != r2
+    return r1 ~= r2
   end
 end
 
