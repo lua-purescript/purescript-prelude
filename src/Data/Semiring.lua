@@ -1,5 +1,7 @@
 -- module Data.Semiring
 
+local exports = {}
+
 exports.intAdd = function (x)
   return function (y)
     return math.floor(x + y)
@@ -23,3 +25,5 @@ exports.numMul = function (n1)
     return n1 * n2
   end
 end
+
+return exports
